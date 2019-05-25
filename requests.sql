@@ -21,12 +21,12 @@ CREATE TABLE messages (
 ALTER TABLE
     messages
 ADD
-    sender_trash_level INTEGER NOT NULL DEFAULT 0 CHECK (sender_trash_level IN (0,1,2));
+    sender_trash_level TEXT NOT NULL DEFAULT 'not_trashed' CHECK (sender_trash_level IN ('not_trashed','trashed','deleted'));
 
 ALTER TABLE
     messages
 ADD
-    recipient_trash_level INTEGER NOT NULL DEFAULT 0 CHECK (recipient_trash_level IN (0,1,2));
+    recipient_trash_level TEXT NOT NULL DEFAULT 'not_trashed' CHECK (recipient_trash_level IN ('not_trashed','trashed','deleted'));
 
 --select incoming unread messages for specific user
 SELECT
@@ -42,7 +42,7 @@ AND
 AND
     is_read = 0
 AND
-    recipient_trash_level = 0
+    recipient_trash_level = 'not_trashed'
 ORDER BY id DESC;
 
 --select incoming emails for specific user by 50 messages per page
@@ -57,7 +57,7 @@ WHERE
 AND
     is_sent = 1
 AND
-    recipient_trash_level = 0
+    recipient_trash_level = 'not_trashed'
 ORDER BY id DESC
 LIMIT 50
 OFFSET 0;
@@ -74,7 +74,7 @@ WHERE
 AND
     is_sent = 1
 AND
-    sender_trash_level = 0
+    sender_trash_level = 'not_trashed'
 ORDER BY id DESC
 LIMIT 50
 OFFSET 0;
@@ -91,7 +91,7 @@ WHERE
 AND
     is_sent = 0
 AND
-    sender_trash_level = 0
+    sender_trash_level = 'not_trashed'
 ORDER BY id DESC;
 
 --create a message and keep it as a draft
@@ -120,7 +120,7 @@ WHERE
 UPDATE
     messages
 SET
-    sender_trash_level = 1
+    sender_trash_level = 'trashed'
 WHERE
     sender_id = 8
 AND
@@ -130,7 +130,7 @@ AND
 UPDATE
     messages
 SET
-    recipient_trash_level= 1
+    recipient_trash_level= 'trashed'
 WHERE
     recipient_id = 8
 AND
@@ -142,18 +142,18 @@ BEGIN TRANSACTION;
 UPDATE
     messages
 SET
-    sender_trash_level = 2
+    sender_trash_level = 'deleted'
 WHERE
-    sender_trash_level = 1
+    sender_trash_level = 'trashed'
 AND
     sender_id = 8;
 
 UPDATE
     messages
 SET
-    recipient_trash_level = 2
+    recipient_trash_level = 'deleted'
 WHERE
-    recipient_trash_level = 1
+    recipient_trash_level = 'trashed'
 AND
     recipient_id = 8;
 
@@ -174,7 +174,7 @@ FROM (
         AND
               is_sent = 1
         AND
-              recipient_trash_level = 0
+              recipient_trash_level = 'not_trashed'
 
     UNION
 
@@ -188,7 +188,7 @@ FROM (
         AND
               is_sent = 1
         AND
-              recipient_trash_level = 0
+              recipient_trash_level = 'not_trashed'
         AND
               is_read = 0
     UNION
@@ -203,7 +203,7 @@ FROM (
         AND
             is_sent = 1
         AND
-            sender_trash_level = 0
+            sender_trash_level = 'not_trashed'
 
     UNION
 
@@ -217,7 +217,7 @@ FROM (
         AND
             is_sent = 0
         AND
-            sender_trash_level = 0
+            sender_trash_level = 'not_trashed'
 );
 
 --Who is writing to whom
